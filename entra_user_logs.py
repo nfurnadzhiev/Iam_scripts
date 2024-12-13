@@ -41,7 +41,6 @@ def fetch_all_signin_logs(headers, filter_query):
         if response.status_code == 200:
             data = response.json()
             all_signins.extend(data.get('value', []))
-            # Check for next link for pagination
             url = data.get('@odata.nextLink')
         else:
             print(f"Error: {response.status_code} - {response.text}")
@@ -95,7 +94,7 @@ def get_signin_logs(time_filter='1h', output_format='both', unique_users=False):
                 if location:
                     location_string = f"{location.get('city', 'N/A')}, {location.get('countryOrRegion', 'N/A')}"
                     signin_data['location'] = location_string
-                    signin_data['country'] = location_string.split(', ')[-1]  # Extract the country code
+                    signin_data['country'] = location_string.split(', ')[-1] 
                 else:
                     signin_data['location'] = 'N/A'
                     signin_data['country'] = 'N/A'
@@ -107,7 +106,6 @@ def get_signin_logs(time_filter='1h', output_format='both', unique_users=False):
             print_statistics(df)
             
             if unique_users:
-                # Filter to only include the most recent sign-in per user
                 df = df.sort_values('timestamp').groupby('user').last().reset_index()
             
             if output_format in ['csv', 'both']:

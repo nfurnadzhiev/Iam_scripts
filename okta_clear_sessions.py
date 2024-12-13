@@ -2,11 +2,9 @@ import requests
 import time
 from datetime import datetime
 
-# Your environment details
 OKTA_DOMAIN = "<your domain>"
 API_KEY = "<your api key>"
 
-# Exclusion list - add emails to exclude
 EXCLUDED_USERS = [
     "admin@example.com",
     "serviceaccount@example.com",
@@ -113,7 +111,6 @@ class OktaDeactivator:
         self.log_action(f"{'DRY RUN - ' if dry_run else ''}Starting user deactivation process")
         self.log_action(f"Number of users in exclusion list: {len(EXCLUDED_USERS)}")
         
-        # Get users based on whether group_id is provided
         if group_id:
             self.log_action(f"Fetching users from group: {group_id}")
             users = self.get_group_users(group_id)
@@ -143,7 +140,6 @@ Deactivation Summary:
                 self.log_action(f"{i}/{total_users}: {email}")
             return
         
-        # Confirmation prompt
         confirm = input(f"Are you sure you want to deactivate {total_users} users? This will:\n"
                        f"1. Revoke all active sessions\n"
                        f"2. Deactivate all user accounts\n"
@@ -153,21 +149,17 @@ Deactivation Summary:
             self.log_action("Deactivation cancelled by user")
             return
         
-        # Process deactivation
         self.log_action(f"\nStarting deactivation of {total_users} users...")
         
         for user in users:
             email = user.get('profile', {}).get('email', 'No email')
             user_id = user['id']
             
-            # First revoke sessions
             self.revoke_user_sessions(user_id, email)
             
-            # Then deactivate
             self.deactivate_user(user_id, email)
-            time.sleep(0.5)  # Rate limiting precaution
+            time.sleep(0.5)  
         
-        # Final summary
         self.log_action(f"""
 Deactivation process completed:
 - Total users processed: {self.progress['total']}
@@ -177,10 +169,8 @@ Log file: {self.log_file}
         """)
 
 if __name__ == "__main__":
-    # Ask for group ID
     group_id = input("Enter group ID to target specific group (or press Enter for all users): ").strip()
     
-    # Allow adding exclusions via command line
     print("\nCurrent exclusion list:", EXCLUDED_USERS)
     add_exclusions = input("Would you like to add more emails to exclude? (yes/no): ")
     
@@ -194,11 +184,9 @@ if __name__ == "__main__":
     
     deactivator = OktaDeactivator()
     
-    # First run in dry-run mode
     print("\nPerforming dry run first...")
     deactivator.run_deactivation(group_id=group_id if group_id else None, dry_run=True)
     
-    # Ask if user wants to proceed with actual deactivation
     proceed = input("\nWould you like to proceed with actual deactivation? (yes/no): ")
     if proceed.lower() == 'yes':
         deactivator.run_deactivation(group_id=group_id if group_id else None, dry_run=False)
